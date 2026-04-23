@@ -1,0 +1,20 @@
+.{
+    .name = .primesieve,
+    .version = "0.0.0",
+    .fingerprint = 0x44976e1b951b601f,
+    .minimum_zig_version = "0.16.0",
+
+    // zig fetch --save=upstream git+https://github.com/kimwalisch/primesieve.git
+    .dependencies = .{
+        .upstream = .{
+            .url = "git+https://github.com/kimwalisch/primesieve.git#1315b5043da463ea4a6290624c00a819b0bd13dc",
+            .hash = "N-V-__8AAB6vFgASHSA8U-yHZmqNIuOO3vLsUbSEZ4IUXSbS",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "Readme.md",
+        "LICENSE",
+    },
+}

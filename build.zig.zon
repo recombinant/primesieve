@@ -7,8 +7,8 @@
     // zig fetch --save=upstream git+https://github.com/kimwalisch/primesieve.git
     .dependencies = .{
         .upstream = .{
-            .url = "git+https://github.com/kimwalisch/primesieve.git#1315b5043da463ea4a6290624c00a819b0bd13dc",
-            .hash = "N-V-__8AAB6vFgASHSA8U-yHZmqNIuOO3vLsUbSEZ4IUXSbS",
+            .url = "git+https://github.com/kimwalisch/primesieve.git#6f4a25dad0f03fc3ef1625f62a9ec7c5614cd020",
+            .hash = "N-V-__8AANC1FgAHtTvvdyfFPcWnlfg5SWgEOBC8jhg4lmgG",
         },
     },
     .paths = .{

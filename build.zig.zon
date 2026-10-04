@@ -2,13 +2,16 @@
     .name = .primesieve,
     .version = "0.0.0",
     .fingerprint = 0x44976e1b951b601f,
-    .minimum_zig_version = "0.16.0",
+    .minimum_zig_version = "0.17.0",
 
+    // for HEAD
     // zig fetch --save=upstream git+https://github.com/kimwalisch/primesieve.git
+
+    // zig fetch --save=upstream https://github.com/kimwalisch/primesieve/archive/refs/tags/v12.16.tar.gz
     .dependencies = .{
         .upstream = .{
-            .url = "git+https://github.com/kimwalisch/primesieve.git#6f4a25dad0f03fc3ef1625f62a9ec7c5614cd020",
-            .hash = "N-V-__8AANC1FgAHtTvvdyfFPcWnlfg5SWgEOBC8jhg4lmgG",
+            .url = "https://github.com/kimwalisch/primesieve/archive/refs/tags/v12.16.tar.gz",
+            .hash = "N-V-__8AAMv1FgAkrguyrI53OatvuA3Z44n3EwkZDuGwkz1q",
         },
     },
     .paths = .{

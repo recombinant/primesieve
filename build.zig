@@ -51,6 +51,7 @@ pub fn build(b: *Build) void {
     });
     libprimesieve.installHeader(upstream.path("include/primesieve.h"), "primesieve.h");
     libprimesieve.installHeader(upstream.path("include/primesieve/iterator.h"), "primesieve/iterator.h");
+    b.installArtifact(libprimesieve);
 
     //-----------------------------------------------------------
     const translate_c = b.dependency("translate_c", .{});
@@ -59,10 +60,12 @@ pub fn build(b: *Build) void {
         .c_source_file = upstream.path("include/primesieve.h"),
         .target = target,
         .optimize = optimize,
+        .default_init = false,
     });
     trans_libprimesieve.linkLibrary(libprimesieve);
 
     const primesieve_module: *Build.Module = b.addModule("primesieve", .{
+        .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
 
@@ -70,20 +73,21 @@ pub fn build(b: *Build) void {
             .{ .name = "libprimesieve", .module = trans_libprimesieve.mod },
         },
     });
-    _ = primesieve_module;
 
     // ----------------------------------------------------------
-    const main_mod = b.createModule(.{
+    const main_module = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+
+        .imports = &.{
+            .{ .name = "primesieve", .module = primesieve_module },
+        },
     });
-    main_mod.addImport("primesieve", trans_libprimesieve.mod);
     const main_exe = b.addExecutable(.{
         .name = "main",
-        .root_module = main_mod,
+        .root_module = main_module,
     });
-    // b.installArtifact(main_exe);
 
     const run_step = b.step("run", "Build and run the executable");
     const run_exe = b.addRunArtifact(main_exe);

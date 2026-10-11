@@ -4,7 +4,10 @@
     .fingerprint = 0x44976e1b951b601f,
     .minimum_zig_version = "0.17.0",
 
-    // for HEAD
+    // zig fetch --save git+https://codeberg.org/ziglang/translate-c
+    // zig fetch --save git+https://codeberg.org/ziglang/translate-c#zig-0.17.x
+
+    // for primesieve HEAD
     // zig fetch --save=upstream git+https://github.com/kimwalisch/primesieve.git
 
     // zig fetch --save=upstream https://github.com/kimwalisch/primesieve/archive/refs/tags/v12.16.tar.gz
@@ -12,6 +15,10 @@
         .upstream = .{
             .url = "https://github.com/kimwalisch/primesieve/archive/refs/tags/v12.16.tar.gz",
             .hash = "N-V-__8AAMv1FgAkrguyrI53OatvuA3Z44n3EwkZDuGwkz1q",
+        },
+        .translate_c = .{
+            .url = "git+https://codeberg.org/ziglang/translate-c?ref=zig-0.17.x#f978dca0f2b2a782d06591989e80aae7c74d0183",
+            .hash = "translate_c-2.0.1-Q_BUWmVOBwDWdxpDb7n6-LpMznKteZvXbL_4r6DxB2_d",
         },
     },
     .paths = .{

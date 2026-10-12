@@ -73,23 +73,5 @@ pub fn build(b: *Build) void {
             .{ .name = "libprimesieve", .module = trans_libprimesieve.mod },
         },
     });
-
-    // ----------------------------------------------------------
-    const main_module = b.createModule(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-
-        .imports = &.{
-            .{ .name = "primesieve", .module = primesieve_module },
-        },
-    });
-    const main_exe = b.addExecutable(.{
-        .name = "main",
-        .root_module = main_module,
-    });
-
-    const run_step = b.step("run", "Build and run the executable");
-    const run_exe = b.addRunArtifact(main_exe);
-    run_step.dependOn(&run_exe.step);
+    _ = primesieve_module;
 }

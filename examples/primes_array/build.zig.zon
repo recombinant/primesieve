@@ -1,0 +1,16 @@
+.{
+    .name = .primes_array,
+    .version = "0.0.1",
+    .minimum_zig_version = "0.17.0",
+    .fingerprint = 0xa672220148dd3539,
+
+    .dependencies = .{
+        .primesieve = .{ .path = "../../" },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

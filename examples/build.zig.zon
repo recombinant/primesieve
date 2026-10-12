@@ -1,0 +1,15 @@
+.{
+    .name = .examples,
+    .version = "0.0.0",
+    .fingerprint = 0x7bd0ad4546527de1,
+    .minimum_zig_version = "0.17.0",
+
+    .paths = .{""},
+    .dependencies = .{
+        .count_primes = .{ .path = "count_primes" },
+        .nth_prime = .{ .path = "nth_prime" },
+        .prev_prime = .{ .path = "prev_prime" },
+        .primes_array = .{ .path = "primes_array" },
+        .primesieve_iterator = .{ .path = "primesieve_iterator" },
+    },
+}

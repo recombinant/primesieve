@@ -1,4 +1,4 @@
-// Zig program to iterate over primes using C primesieve.iterator.
+// Zig program to iterate over primes using C primesieve.Iterator.
 const std = @import("std");
 const Io = std.Io;
 const primesieve = @import("primesieve");

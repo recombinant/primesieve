@@ -259,7 +259,7 @@ pub const version = primesieve.primesieve_version;
 /// C prime iterator, please refer to @link iterator.h iterator.h
 /// @endlink for more information.
 ///
-pub const PrimesieveIterator = primesieve.primesieve_iterator;
+pub const Iterator = primesieve.primesieve_iterator;
 
 /// Initialize the primesieve iterator before first using it
 ///
@@ -322,7 +322,7 @@ pub const generatePrevPrimes = primesieve.primesieve_generate_prev_primes;
 /// Returns PRIMESIEVE_ERROR (UINT64_MAX) if any error occurs.
 ///
 /// static inline uint64_t primesieve_next_prime(primesieve_iterator* it)
-pub inline fn nextPrime(it: *PrimesieveIterator) u64 {
+pub inline fn nextPrime(it: *Iterator) u64 {
     it.i += 1;
     if (it.i >= it.size) {
         @branchHint(.unlikely);
@@ -339,7 +339,7 @@ pub inline fn nextPrime(it: *PrimesieveIterator) u64 {
 /// it is preferable to use primesieve_next_prime().
 ///
 /// static inline uint64_t primesieve_prev_prime(primesieve_iterator* it)
-pub inline fn prevPrime(it: *PrimesieveIterator) u64 {
+pub inline fn prevPrime(it: *Iterator) u64 {
     if (it.i == 0) {
         @branchHint(.unlikely);
         generatePrevPrimes(it);

@@ -347,3 +347,13 @@ pub inline fn prevPrime(it: *Iterator) u64 {
     it.i -= 1;
     return it.primes[it.i];
 }
+
+test "run all tests" {
+    _ = @import("test_clear_primesieve_iterator2.zig");
+    _ = @import("test_generate_n_primes2.zig");
+    _ = @import("test_generate_primes2.zig");
+    _ = @import("test_next_prime2.zig");
+    _ = @import("test_prev_prime2.zig");
+    _ = @import("test_jump_to_next_prime.zig");
+    _ = @import("test_jump_to_prev_prime.zig");
+}

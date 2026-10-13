@@ -73,5 +73,13 @@ pub fn build(b: *Build) void {
             .{ .name = "libprimesieve", .module = trans_libprimesieve.mod },
         },
     });
-    _ = primesieve_module;
+
+    // ----------------------------------------------------------
+    const test_step = b.step("test", "Run all tests");
+
+    const module_tests = b.addTest(.{
+        .root_module = primesieve_module,
+    });
+    const run_module_tests = b.addRunArtifact(module_tests);
+    test_step.dependOn(&run_module_tests.step);
 }

@@ -11,36 +11,34 @@ const testing = std.testing;
 test "clear primesieve iterator" {
     const primesieve = @import("root.zig");
 
-    var size: usize = 0;
-    const generated: ?*anyopaque = primesieve.generatePrimes(0, 100_000, &size, primesieve.UINT64_PRIMES);
-    try testing.expect(generated != null);
-    try testing.expectEqual(9_592, size);
-    const primes = @as([*]u64, @ptrCast(@alignCast(generated)))[0..size];
+    const primes: []u64 = try primesieve.generatePrimes(u64, 0, 100_000);
+    defer primesieve.free(primes);
 
-    var it: primesieve.Iterator = undefined;
-    primesieve.init(&it);
+    try testing.expectEqual(9_592, primes.len);
+
+    var it: primesieve.Iterator = .init();
+    defer it.deinit();
 
     {
-        var i: usize = size;
+        var i: usize = primes.len;
         while (i > 1) {
             i -= 1;
-            primesieve.jumpTo(&it, primes[i], 0);
-            var prime = primesieve.prevPrime(&it);
+            it.jumpTo(primes[i], 0);
+            var prime = it.prev() orelse unreachable;
             try testing.expectEqual(primes[i], prime);
 
-            primesieve.jumpTo(&it, primes[i] - 1, 0);
-            prime = primesieve.prevPrime(&it);
+            it.jumpTo(primes[i] - 1, 0);
+            prime = it.prev() orelse unreachable;
             try testing.expectEqual(primes[i - 1], prime);
         }
     }
 
-    primesieve.jumpTo(&it, 100_000_000, 0);
+    it.jumpTo(100_000_000, 0);
 
     var sum: u64 = 0;
 
     // iterate over the primes <= 10^8
-    while (true) {
-        const prime = primesieve.prevPrime(&it);
+    while (it.prev()) |prime| {
         if (prime == 0)
             break;
         sum += prime;
@@ -48,12 +46,11 @@ test "clear primesieve iterator" {
     try testing.expectEqual(279_209_790_387_276, sum);
 
     // Test iterating past the stop_hint
-    primesieve.jumpTo(&it, 100_000_000, 5_000_000);
+    it.jumpTo(100_000_000, 5_000_000);
     sum = 0;
 
     // iterate over the primes <= 10^8
-    while (true) {
-        const prime = primesieve.prevPrime(&it);
+    while (it.prev()) |prime| {
         if (prime == 0)
             break;
         sum += prime;
@@ -61,29 +58,26 @@ test "clear primesieve iterator" {
     try testing.expectEqual(279_209_790_387_276, sum);
 
     for (0..1_000) |_| {
-        const prime = primesieve.prevPrime(&it);
+        const prime = it.prev() orelse unreachable;
         try testing.expectEqual(0, prime);
     }
 
     for (0..1_000) |i| {
-        const prime = primesieve.nextPrime(&it);
+        const prime = it.next() orelse unreachable;
         try testing.expectEqual(primes[i], prime);
     }
 
-    primesieve.jumpTo(&it, primes[size - 1] - 1, 0);
+    it.jumpTo(primes[primes.len - 1] - 1, 0);
 
     for (0..1_000) |i| {
-        const p2 = primes[size - (i + 2)];
-        const prime = primesieve.prevPrime(&it);
+        const p2 = primes[primes.len - (i + 2)];
+        const prime = it.prev() orelse unreachable;
         try testing.expectEqual(p2, prime);
     }
 
     for (0..1_000) |i| {
-        const p1 = size - 1_000 + i;
-        const prime = primesieve.nextPrime(&it);
+        const p1 = primes.len - 1_000 + i;
+        const prime = it.next() orelse unreachable;
         try testing.expectEqual(primes[p1], prime);
     }
-
-    primesieve.free(primes.ptr);
-    primesieve.freeIterator(&it);
 }

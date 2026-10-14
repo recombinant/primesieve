@@ -10,26 +10,27 @@ const testing = std.testing;
 test "clear primesieve iterator" {
     const primesieve = @import("root.zig");
 
-    var it: primesieve.Iterator = undefined;
-    primesieve.init(&it);
+    var it: primesieve.Iterator = .init();
+    defer it.deinit();
 
-    var primes: u64 = 0;
+    var prime_count: u64 = 0;
 
     for (0..10) |_| {
-        primesieve.clear(&it);
-        var prime: u64 = primesieve.nextPrime(&it);
-        while (prime < 100_000) {
-            primes += 1;
-            prime = primesieve.nextPrime(&it);
+        it.clear();
+
+        while (it.next()) |prime| {
+            if (prime >= 100_000)
+                break;
+            prime_count += 1;
         }
     }
 
-    try testing.expectEqual(9592 * 10, primes);
+    try testing.expectEqual(9592 * 10, prime_count);
 
-    primesieve.freeIterator(&it);
-    const prime: u64 = primesieve.nextPrime(&it);
+    it.clear();
 
-    try testing.expectEqual(2, prime);
+    const optional_prime: ?u64 = it.next();
 
-    primesieve.freeIterator(&it);
+    try testing.expect(optional_prime != null);
+    try testing.expectEqual(2, optional_prime.?);
 }

@@ -23,21 +23,19 @@ pub fn main(init: std.process.Init) !void {
     if (args.len > 1)
         limit = try std.fmt.parseInt(u64, args[1], 10);
 
-    var it: primesieve.Iterator = undefined;
-    primesieve.init(&it);
+    var it: primesieve.Iterator = .init();
+    defer it.deinit();
 
-    // primesieve.jumpTo(&it, start_number, stop_hint)
-    primesieve.jumpTo(&it, limit, 0);
+    // it.jumpTo(start_number, stop_hint)
+    it.jumpTo(limit, 0);
     var sum: u64 = 0;
 
     // Backwards iterate over the primes <= limit
-    while (true) {
-        const prime = primesieve.prevPrime(&it);
+    while (it.prev()) |prime| {
         if (prime == 0)
             break;
         sum += prime;
     }
-    primesieve.freeIterator(&it);
     try stdout_writer.print("Sum of the primes: {}\n", .{sum});
 
     // Note that since sum is a 64-bit variable the result

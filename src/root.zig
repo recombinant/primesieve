@@ -9,68 +9,50 @@
 //! Copyright (C) 2026 Kim Walisch, <kim.walisch@gmail.com>
 //!
 //! This file is distributed under the BSD License.
-//!
-//! @file   iterator.h
-//! @brief  primesieve_iterator allows to easily iterate over primes
-//!         both forwards and backwards. Generating the first prime
-//!         has a complexity of O(r log log r) operations with
-//!         r = n^0.5, after that any additional prime is generated in
-//!         amortized O(log n log log n) operations. The memory usage
-//!         is about PrimePi(n^0.5) * 8 bytes.
-//!
-//!         The @link primesieve_iterator.c primesieve_iterator.c
-//!         @endlink example shows how to use primesieve_iterator.
-//!         If any error occurs primesieve_next_prime() and
-//!         primesieve_prev_prime() return PRIMESIEVE_ERROR.
-//!         Furthermore primesieve_iterator.is_error is initialized
-//!         to 0 and set to 1 if any error occurs.
-//!
-//! Copyright (C) 2026 Kim Walisch, <kim.walisch@gmail.com>
-//!
-//! This file is distributed under the BSD License. See the COPYING
-//! file in the top level directory.
 
-// --------------------------------------------------------------
 const std = @import("std");
 const primesieve = @import("libprimesieve");
-
 // --------------------------------------------------------------
-// ----------------------------------------- include/primesieve.h
+test "run all tests" {
+    _ = @import("test_clear_primesieve_iterator2.zig");
+    _ = @import("test_generate_n_primes2.zig");
+    _ = @import("test_generate_primes2.zig");
+    _ = @import("test_next_prime2.zig");
+    _ = @import("test_prev_prime2.zig");
+    _ = @import("test_jump_to_next_prime.zig");
+    _ = @import("test_jump_to_prev_prime.zig");
+}
 
+// -------------------------------- include/primesieve/iterator.h
+pub const Iterator = @import("Iterator.zig");
+
+// ----------------------------------------- include/primesieve.h
 /// primesieve functions return PRIMESIEVE_ERROR
 /// (UINT64_MAX) if any error occurs.
 pub const ERROR = std.math.maxInt(u64);
 
-/// Generate primes of short type
-pub const SHORT_PRIMES = primesieve.SHORT_PRIMES;
-/// Generate primes of unsigned short type
-pub const USHORT_PRIMES = primesieve.USHORT_PRIMES;
-/// Generate primes of int type
-pub const INT_PRIMES = primesieve.INT_PRIMES;
-/// Generate primes of unsigned int type
-pub const UINT_PRIMES = primesieve.UINT_PRIMES;
-/// Generate primes of long type
-pub const LONG_PRIMES = primesieve.LONG_PRIMES;
-/// Generate primes of unsigned long type
-pub const ULONG_PRIMES = primesieve.ULONG_PRIMES;
-/// Generate primes of long long type
-pub const LONGLONG_PRIMES = primesieve.LONGLONG_PRIMES;
-/// Generate primes of unsigned long long type
-pub const ULONGLONG_PRIMES = primesieve.ULONGLONG_PRIMES;
-/// Generate primes of int16_t type
-pub const INT16_PRIMES = primesieve.INT16_PRIMES;
-/// Generate primes of uint16_t type
-pub const UINT16_PRIMES = primesieve.UINT16_PRIMES;
-/// Generate primes of int32_t type
-pub const INT32_PRIMES = primesieve.INT32_PRIMES;
-/// Generate primes of uint32_t type
-pub const UINT32_PRIMES = primesieve.UINT32_PRIMES;
-/// Generate primes of int64_t type
-pub const INT64_PRIMES = primesieve.INT64_PRIMES;
-/// Generate primes of uint64_t type
-pub const UINT64_PRIMES = primesieve.UINT64_PRIMES;
+fn getPrimesieveType(comptime T: type) @TypeOf(primesieve.UINT64_PRIMES) {
+    return comptime switch (T) {
+        c_short => primesieve.SHORT_PRIMES,
+        c_ushort => primesieve.USHORT_PRIMES,
+        c_int => primesieve.INT_PRIMES,
+        c_uint => primesieve.UINT_PRIMES,
+        c_long => primesieve.LONG_PRIMES,
+        c_ulong => primesieve.ULONG_PRIMES,
+        c_longlong => primesieve.LONGLONG_PRIMES,
+        c_ulonglong => primesieve.ULONGLONG_PRIMES,
+        i16 => primesieve.INT16_PRIMES,
+        u16 => primesieve.UINT16_PRIMES,
+        i32 => primesieve.INT32_PRIMES,
+        u32 => primesieve.UINT32_PRIMES,
+        i64 => primesieve.INT64_PRIMES,
+        u64 => primesieve.UINT64_PRIMES,
+        else => @compileError("primesieve has not equivalent type for \"" ++ @typeName(T) ++ "\""),
+    };
+}
 
-/// Get an array with the primes inside the interval [start, stop].
+/// Get an array with the primes inside the
+/// half-open interval [start, stop).
 /// @param size  The size of the returned primes array.
 /// @param type  The type of the primes to generate, e.g. INT_PRIMES.
 ///
@@ -83,7 +65,16 @@ pub const UINT64_PRIMES = primesieve.UINT64_PRIMES;
 /// can reliably detect errors.
 ///
 /// void* primesieve_generate_primes(uint64_t start, uint64_t stop, size_t* size, int type);
-pub const generatePrimes = primesieve.primesieve_generate_primes;
+///
+/// Zig: Call primesieve.free() to free the allocated slice.
+pub fn generatePrimes(comptime T: type, start: u64, stop: u64) ![]T {
+    const primesieve_type = getPrimesieveType(T);
+    var size: usize = 0;
+    const generated: ?*anyopaque = primesieve.primesieve_generate_primes(start, stop, &size, primesieve_type);
+    if (generated == null)
+        return error.FailedGeneratePrimes;
+    return @as([*]T, @ptrCast(@alignCast(generated)))[0..size];
+}
 
 /// Get an array with the first n primes >= start.
 /// @param type  The type of the primes to generate, e.g. INT_PRIMES.
@@ -98,7 +89,36 @@ pub const generatePrimes = primesieve.primesieve_generate_primes;
 /// is valid (but useless) and which returns a NULL pointer.
 ///
 /// void* primesieve_generate_n_primes(uint64_t n, uint64_t start, int type);
-pub const generateNPrimes = primesieve.primesieve_generate_n_primes;
+///
+/// Zig: Call primesieve.free() to free the allocated slice.
+pub fn generateNPrimes(comptime T: type, n: u64, start: u64) ![]T {
+    const primesieve_type = getPrimesieveType(T);
+    const generated: ?*anyopaque = primesieve.primesieve_generate_n_primes(n, start, primesieve_type);
+    if (generated == null)
+        return error.FailedGenerateNPrimes;
+    return @as([*]T, @ptrCast(@alignCast(generated)))[0..n];
+}
+
+/// Deallocate a primes array created using the
+/// primesieve_generate_primes() or primesieve_generate_n_primes()
+/// functions.
+///
+/// void primesieve_free(void* primes);
+///
+/// Zig: Deallocates slice created using generatePrimes() or
+///      generateNPrimes()
+pub fn free(primes: anytype) void {
+    switch (@typeInfo(@TypeOf(primes))) {
+        .pointer => |p| {
+            if (p.size == .slice) {
+                primesieve.primesieve_free(primes.ptr);
+                return;
+            }
+            unreachable;
+        },
+        else => unreachable,
+    }
+}
 
 /// Find the nth prime.
 /// By default all CPU cores are used, use
@@ -241,119 +261,7 @@ pub const setSieveSize = primesieve.primesieve_set_sieve_size;
 /// void primesieve_set_num_threads(int num_threads);
 pub const setNumThreads = primesieve.primesieve_set_num_threads;
 
-/// Deallocate a primes array created using the
-/// primesieve_generate_primes() or primesieve_generate_n_primes()
-/// functions.
-///
-/// void primesieve_free(void* primes);
-pub const free = primesieve.primesieve_free;
-
 /// Get the primesieve version number, in the form “i.j”
 ///
 /// const char* primesieve_version(void);
 pub const version = primesieve.primesieve_version;
-
-// --------------------------------------------------------------
-// -------------------------------- include/primesieve/iterator.h
-
-/// C prime iterator, please refer to @link iterator.h iterator.h
-/// @endlink for more information.
-///
-pub const Iterator = primesieve.primesieve_iterator;
-
-/// Initialize the primesieve iterator before first using it
-///
-/// void primesieve_init(primesieve_iterator* it);
-pub const init = primesieve.primesieve_init;
-
-/// Free all memory
-///
-/// void primesieve_free_iterator(primesieve_iterator* it);
-pub const freeIterator = primesieve.primesieve_free_iterator;
-
-/// Reset the start number to 0 and free most memory.
-/// Keeps some smaller data structures in memory
-/// (e.g. the IteratorData object) that are useful if the
-/// primesieve_iterator is reused. The remaining memory
-/// uses at most 2 kilobytes.
-///
-/// void primesieve_clear(primesieve_iterator* it);
-pub const clear = primesieve.primesieve_clear;
-
-/// Reset the primesieve iterator to start.
-/// @param start      Generate primes >= start (or <= start).
-/// @param stop_hint  Stop number optimization hint. E.g. if you want
-///                   to generate the primes <= 1000 use
-///                   stop_hint = 1000, if you don't know use
-///                   UINT64_MAX.
-///
-/// void primesieve_jump_to(primesieve_iterator* it, uint64_t start, uint64_t stop_hint);
-pub const jumpTo = primesieve.primesieve_jump_to;
-
-/// Used internally by primesieve_next_prime().
-/// primesieve_generate_next_primes() fills (overwrites) the primes
-/// array with the next few primes (~ 2^10) that are larger than the
-/// current largest prime in the primes array or with the
-/// primes >= start if the primes array is empty.
-/// Note that this function also updates the i & size member variables
-/// of the primesieve_iterator struct. The size of the primes array
-/// varies, but it is > 0 and usually close to 2^10.
-/// If an error occurs primesieve_iterator.is_error is set to 1
-/// and the primes array will contain PRIMESIEVE_ERROR.
-///
-/// void primesieve_generate_next_primes(primesieve_iterator*);
-pub const generateNextPrimes = primesieve.primesieve_generate_next_primes;
-
-/// Used internally by primesieve_prev_prime().
-/// primesieve_generate_prev_primes() fills (overwrites) the primes
-/// array with the next few primes ~ O(sqrt(n)) that are smaller than
-/// the current smallest prime in the primes array or with the
-/// primes <= start if the primes array is empty.
-/// Note that this function also updates the i & size member variables
-/// of the primesieve_iterator struct. The size of the primes array
-/// varies, but it is > 0 and ~ O(sqrt(n)).
-/// If an error occurs primesieve_iterator.is_error is set to 1
-/// and the primes array will contain PRIMESIEVE_ERROR.
-///
-/// void primesieve_generate_prev_primes(primesieve_iterator*);
-pub const generatePrevPrimes = primesieve.primesieve_generate_prev_primes;
-
-/// Get the next prime.
-/// Returns PRIMESIEVE_ERROR (UINT64_MAX) if any error occurs.
-///
-/// static inline uint64_t primesieve_next_prime(primesieve_iterator* it)
-pub inline fn nextPrime(it: *Iterator) u64 {
-    it.i += 1;
-    if (it.i >= it.size) {
-        @branchHint(.unlikely);
-        generateNextPrimes(it);
-    }
-    return it.primes[it.i];
-}
-
-/// Get the previous prime.
-/// primesieve_prev_prime(n) returns 0 for n <= 2.
-/// Note that primesieve_next_prime() runs up to 2x faster than
-/// primesieve_prev_prime(). Hence if the same algorithm can be written
-/// using either primesieve_prev_prime() or primesieve_next_prime()
-/// it is preferable to use primesieve_next_prime().
-///
-/// static inline uint64_t primesieve_prev_prime(primesieve_iterator* it)
-pub inline fn prevPrime(it: *Iterator) u64 {
-    if (it.i == 0) {
-        @branchHint(.unlikely);
-        generatePrevPrimes(it);
-    }
-    it.i -= 1;
-    return it.primes[it.i];
-}
-
-test "run all tests" {
-    _ = @import("test_clear_primesieve_iterator2.zig");
-    _ = @import("test_generate_n_primes2.zig");
-    _ = @import("test_generate_primes2.zig");
-    _ = @import("test_next_prime2.zig");
-    _ = @import("test_prev_prime2.zig");
-    _ = @import("test_jump_to_next_prime.zig");
-    _ = @import("test_jump_to_prev_prime.zig");
-}

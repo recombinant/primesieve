@@ -11,36 +11,35 @@ const testing = std.testing;
 test "generate primes2" {
     const primesieve = @import("root.zig");
 
-    var size: usize = 0;
-    var primes: [*c]u64 = @ptrCast(@alignCast(primesieve.generatePrimes(0, 100, &size, primesieve.UINT64_PRIMES)));
-    try testing.expectEqual(25, size);
+    var primes: []u64 = try primesieve.generatePrimes(u64, 0, 100);
+    try testing.expectEqual(25, primes.len);
 
-    for (0..size) |i|
-        try testing.expectEqual(small_primes[i], primes[i]);
+    for (primes, 0..) |prime, i|
+        try testing.expectEqual(small_primes[i], prime);
 
     primesieve.free(primes);
 
-    primes = @ptrCast(@alignCast(primesieve.generatePrimes(0, 1_000, &size, primesieve.UINT64_PRIMES)));
-    try testing.expectEqual(168, size);
+    primes = try primesieve.generatePrimes(u64, 0, 1_000);
+    try testing.expectEqual(168, primes.len);
     primesieve.free(primes);
 
-    primes = @ptrCast(@alignCast(primesieve.generatePrimes(0, 1_000_000, &size, primesieve.UINT64_PRIMES)));
-    try testing.expectEqual(78_498, size);
+    primes = try primesieve.generatePrimes(u64, 0, 1_000_000);
+    try testing.expectEqual(78_498, primes.len);
     primesieve.free(primes);
 
-    primes = @ptrCast(@alignCast(primesieve.generatePrimes(1_000_003, 9_999_991, &size, primesieve.UINT64_PRIMES)));
-    try testing.expectEqual(664_579 - 78_498, size);
+    primes = try primesieve.generatePrimes(u64, 1_000_003, 9_999_991);
+    try testing.expectEqual(664_579 - 78_498, primes.len);
     primesieve.free(primes);
 
-    primes = @ptrCast(@alignCast(primesieve.generatePrimes(1_000_000, 1_000_000, &size, primesieve.UINT64_PRIMES)));
-    try testing.expectEqual(0, size);
+    primes = try primesieve.generatePrimes(u64, 1_000_000, 1_000_000);
+    try testing.expectEqual(0, primes.len);
     primesieve.free(primes);
 
-    primes = @ptrCast(@alignCast(primesieve.generatePrimes(18_446_744_073_709_550_672, 18_446_744_073_709_551_615, &size, primesieve.UINT64_PRIMES)));
-    try testing.expectEqual(20, size);
+    primes = try primesieve.generatePrimes(u64, 18_446_744_073_709_550_672, 18_446_744_073_709_551_615);
+    try testing.expectEqual(20, primes.len);
 
-    for (0..size) |i|
-        try testing.expectEqual(large_primes[i], primes[i]);
+    for (primes, 0..) |prime, i|
+        try testing.expectEqual(large_primes[i], prime);
 
     primesieve.free(primes);
 

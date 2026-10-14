@@ -12,23 +12,26 @@ pub fn main(init: std.process.Init) !void {
 
     const start: u64 = 0;
     const stop: u64 = 1000;
-    var size: usize = undefined;
+
+    var primes: []c_int = undefined;
 
     // Get an array with the primes <= 1000
-    var primes: [*c]c_int = @ptrCast(@alignCast(primesieve.generatePrimes(start, stop, &size, primesieve.INT_PRIMES)));
+    primes = try primesieve.generatePrimes(c_int, start, stop);
 
-    for (primes[0..size]) |prime|
-        try stdout_writer.print("{}\n", .{prime});
+    for (primes) |prime|
+        try stdout_writer.print("{} ", .{prime});
+    try stdout_writer.writeByte('\n');
 
     primesieve.free(primes);
 
     const n: u64 = 1_000;
 
     // Get an array with the first 1000 primes
-    primes = @ptrCast(@alignCast(primesieve.generateNPrimes(n, start, primesieve.INT_PRIMES)));
+    primes = try primesieve.generateNPrimes(c_int, n, start);
 
-    for (primes[0..n]) |prime|
-        try stdout_writer.print("{}\n", .{prime});
+    for (primes) |prime|
+        try stdout_writer.print("{} ", .{prime});
+    try stdout_writer.writeByte('\n');
 
     primesieve.free(primes);
 

@@ -11,20 +11,21 @@ test "generate n primes2" {
     const primesieve = @import("root.zig");
 
     var size: usize = 25;
-    var primes: [*c]u64 = @ptrCast(@alignCast(primesieve.generateNPrimes(size, 0, primesieve.UINT64_PRIMES)));
+    var primes: []u64 = try primesieve.generateNPrimes(u64, size, 0);
+    defer primesieve.free(primes);
+
+    try testing.expectEqual(size, primes.len);
 
     for (0..size) |i|
         try testing.expectEqual(small_primes[i], primes[i]);
 
-    primesieve.free(primes);
-
     size = 20;
-    primes = @ptrCast(@alignCast(primesieve.generateNPrimes(size, 10_000_000_000_000_000, primesieve.UINT64_PRIMES)));
+    primes = try primesieve.generateNPrimes(u64, size, 10_000_000_000_000_000);
 
     for (0..size) |i|
         try testing.expectEqual(large_primes[i], primes[i]);
 
-    primesieve.free(primes);
+    try testing.expectEqual(size, primes.len);
 
     // // 16 bit overflow at runtime
     // // throws an uncaught runtime error in C++ code

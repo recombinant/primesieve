@@ -11,54 +11,52 @@ const testing = std.testing;
 test "skipto next prime" {
     const primesieve = @import("root.zig");
 
-    var size: usize = 0;
-    const generated: ?*anyopaque = primesieve.generatePrimes(0, 100_000, &size, primesieve.UINT64_PRIMES);
-    try testing.expect(generated != null);
-    try testing.expectEqual(9_592, size);
-    const primes = @as([*]u64, @ptrCast(@alignCast(generated)))[0..size];
+    const primes: []u64 = try primesieve.generatePrimes(u64, 0, 100_000);
+    defer primesieve.free(primes);
 
-    var it: primesieve.Iterator = undefined;
-    primesieve.init(&it);
+    try testing.expectEqual(9_592, primes.len);
 
-    const max_prime: u64 = primes[size - 1];
+    var it: primesieve.Iterator = .init();
+    defer it.deinit();
 
-    for (0..size - 1) |i| {
-        primesieve.jumpTo(&it, primes[i], max_prime);
-        var prime = primesieve.nextPrime(&it);
+    const max_prime: u64 = primes[primes.len - 1];
+
+    for (0..primes.len - 1) |i| {
+        it.jumpTo(primes[i], max_prime);
+        var prime = it.next().?;
         try testing.expectEqual(primes[i], prime);
 
-        primesieve.jumpTo(&it, primes[i] + 1, max_prime);
-        prime = primesieve.nextPrime(&it);
+        it.jumpTo(primes[i] + 1, max_prime);
+        prime = it.next().?;
         try testing.expectEqual(primes[i + 1], prime);
     }
 
-    primesieve.jumpTo(&it, 0, max_prime);
+    it.jumpTo(0, max_prime);
 
     var sum: u64 = 0;
 
     // iterate over the primes below 10^9
-    while (true) {
-        const prime = primesieve.nextPrime(&it);
+    while (it.next()) |prime| {
         if (prime > 1_000_000_000)
             break;
         sum += prime;
     }
     try testing.expectEqual(sum, 24_739_512_092_254_535);
 
-    primesieve.jumpTo(&it, max_prime / 2, max_prime);
+    it.jumpTo(max_prime / 2, max_prime);
 
-    var prime = primesieve.nextPrime(&it);
+    var prime = it.next().?;
     while (prime <= max_prime)
-        prime = primesieve.nextPrime(&it);
+        prime = it.next().?;
 
     for (1..1000) |i| {
-        prime = primesieve.prevPrime(&it);
-        try testing.expectEqual(primes[size - i], prime);
+        prime = it.prev().?;
+        try testing.expectEqual(primes[primes.len - i], prime);
     }
 
-    primesieve.jumpTo(&it, 18_446_744_073_709_551_556, 0);
+    it.jumpTo(18_446_744_073_709_551_556, 0);
 
-    prime = primesieve.nextPrime(&it);
+    prime = it.next().?;
     try testing.expectEqual(18_446_744_073_709_551_557, prime);
 
     // // throws an uncaught runtime error in C++ code
@@ -68,10 +66,8 @@ test "skipto next prime" {
     // // hence we avoid running this test with GCC <= 12.
     // // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106627
     // for (0..100) |_| {
-    //     prime = primesieve.nextPrime(&it);
+    //     prime = it.next() orelse unreachable;
     //     try testing.expectEqual(18_446_744_073_709_551_615, prime);
     // }
 
-    primesieve.free(primes.ptr);
-    primesieve.freeIterator(&it);
 }

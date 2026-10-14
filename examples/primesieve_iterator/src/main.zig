@@ -17,23 +17,21 @@ pub fn main(init: std.process.Init) !void {
     if (args.len > 1)
         limit = try std.fmt.parseInt(u64, args[1], 10);
 
-    var it: primesieve.Iterator = undefined;
-    primesieve.init(&it);
+    var it: primesieve.Iterator = .init();
+    defer it.deinit();
 
     // Indicate exact bounds to improve performance
-    primesieve.jumpTo(&it, 0, limit);
+    it.jumpTo(0, limit);
 
     var sum: u64 = 0;
 
     // Iterate over the primes <= 10^9
-    while (true) {
-        const prime = primesieve.nextPrime(&it);
+    while (it.next()) |prime| {
         if (prime > limit)
             break;
         sum += prime;
     }
 
-    primesieve.freeIterator(&it);
     try stdout_writer.print("Sum of the primes <= {}: {}\n", .{ limit, sum });
 
     try stdout_writer.flush();

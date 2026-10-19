@@ -24,7 +24,7 @@ test "run all tests" {
 }
 
 // -------------------------------- include/primesieve/iterator.h
-pub const Iterator = @import("Iterator.zig");
+pub const Iterator = @import("iterator.zig").Iterator;
 
 // ----------------------------------------- include/primesieve.h
 /// primesieve functions return PRIMESIEVE_ERROR
